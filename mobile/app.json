@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Lewis Prono AI",
+    "slug": "lewis-prono-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0C0F1A",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.apkai.pronostics"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a2e"
+      },
+      "package": "com.apkai.pronostics",
+      "permissions": ["INTERNET"]
+    },
+    "extra": {
+      "apiUrl": "http://192.168.0.115:5000/api"
+    }
+  }
+}

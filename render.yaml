@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: lewis-prono-ai
+    env: python
+    buildCommand: pip install -r ai-engine/requirements.txt
+    startCommand: cd ai-engine && gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: API_SPORTS_KEY
+        value: 4fcd095e8284eb9bf1bd23c0bb83a792
+      - key: RAPIDAPI_KEY
+        value: a9126e9090msh2e4d9a383218738p11f2f7jsn73c7409a7d28
+      - key: JWT_SECRET
+        generateValue: true
