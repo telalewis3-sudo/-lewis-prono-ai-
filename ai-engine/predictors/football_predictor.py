@@ -44,6 +44,18 @@ class FootballPredictor:
             return True
         return False
 
+    def _compute_odds(self, probabilities, prediction):
+        home_pct = probabilities["home"] / 100
+        draw_pct = probabilities["draw"] / 100
+        away_pct = probabilities["away"] / 100
+        if "1" in prediction:
+            raw = 1.0 / home_pct if home_pct > 0 else 3.0
+        elif "N" in prediction:
+            raw = 1.0 / draw_pct if draw_pct > 0 else 3.0
+        else:
+            raw = 1.0 / away_pct if away_pct > 0 else 3.0
+        return round(raw * random.uniform(0.85, 0.95), 2)
+
     def predict(self, match, historical_data):
         home = match["home"]
         away = match["away"]
@@ -92,6 +104,7 @@ class FootballPredictor:
             "prediction": prediction,
             "probabilities": {"home": home_pct, "draw": draw_pct, "away": away_pct},
             "reliability": round(reliability, 1),
+            "odds": self._compute_odds({"home": home_pct, "draw": draw_pct, "away": away_pct}, prediction),
             "confidence_level": self._get_confidence_level(reliability),
         }
 
@@ -101,8 +114,9 @@ class FootballPredictor:
         if reliability >= 40: return "Moyen"
         return "Faible"
 
-    def generate_coupon(self, predictions, min_reliability=60, max_matches=5):
+    def generate_coupon(self, predictions, min_reliability=60, max_matches=5, min_odds=1.0, max_odds=10.0):
         filtered = [p for p in predictions if p["reliability"] >= min_reliability]
+        filtered = [p for p in filtered if min_odds <= p.get("odds", 1.5) <= max_odds]
         filtered.sort(key=lambda x: x["reliability"], reverse=True)
         selected = filtered[:max_matches]
         if not selected:
@@ -110,12 +124,7 @@ class FootballPredictor:
         combined = round(sum(p["reliability"] for p in selected) / len(selected), 1)
         total_odds = 1.0
         for p in selected:
-            if "1" in p["prediction"]:
-                total_odds *= 1.5
-            elif "N" in p["prediction"]:
-                total_odds *= 3.4
-            else:
-                total_odds *= 4.0
+            total_odds *= p.get("odds", 1.5)
         return {
             "matches": selected, "total_odds": round(total_odds, 2),
             "combined_reliability": combined, "total_matches": len(selected),

@@ -9,6 +9,10 @@ export default function CouponScreen() {
   const [coupon, setCoupon] = useState(null);
   const [loading, setLoading] = useState(false);
   const [minReliability, setMinReliability] = useState(60);
+  const [minOdds, setMinOdds] = useState(1.0);
+  const [maxOdds, setMaxOdds] = useState(5.0);
+  const [maxMatches, setMaxMatches] = useState(5);
+  const [days, setDays] = useState(7);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -37,7 +41,13 @@ export default function CouponScreen() {
     setLoading(true);
     setCoupon(null);
     try {
-      const res = await predictionAPI.getCoupon(null, minReliability, 5);
+      const res = await predictionAPI.getCoupon({
+        min_reliability: minReliability,
+        min_odds: minOdds,
+        max_odds: maxOdds,
+        max_matches: maxMatches,
+        days: days,
+      });
       Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
         setCoupon(res.data);
         saveToHistory(res.data);
@@ -73,7 +83,57 @@ export default function CouponScreen() {
           <Text style={styles.configValue}>{minReliability}%</Text>
           <View style={styles.sliderRow}>
             {reliabilityLevels.map(v => (
-              <TouchableOpacity
+          <Text style={[styles.configTitle, { marginTop: 20 }]}>Cote min - max</Text>
+          <View style={styles.oddsRow}>
+            {[1.0, 1.5, 2.0, 3.0, 5.0].map(v => (
+              <TouchableOpacity key={`min-${v}`}
+                style={[styles.oddsBtn, minOdds === v && styles.oddsBtnActive]}
+                onPress={() => { if (v < maxOdds) setMinOdds(v) }}
+              >
+                <Text style={[styles.oddsText, minOdds === v && styles.oddsTextActive]}>{v}</Text>
+              </TouchableOpacity>
+            ))}
+            <Text style={styles.oddsSep}>→</Text>
+            {[2.0, 3.0, 5.0, 8.0, 10.0].map(v => (
+              <TouchableOpacity key={`max-${v}`}
+                style={[styles.oddsBtn, maxOdds === v && styles.oddsBtnActive]}
+                onPress={() => { if (v > minOdds) setMaxOdds(v) }}
+              >
+                <Text style={[styles.oddsText, maxOdds === v && styles.oddsTextActive]}>{v}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.configRow}>
+            <View style={styles.configHalf}>
+              <Text style={styles.configTitle}>Nb matchs</Text>
+              <View style={styles.sliderRow}>
+                {[3, 5, 7, 10].map(v => (
+                  <TouchableOpacity key={`m-${v}`}
+                    style={[styles.sliderBtnSm, maxMatches === v && styles.sliderBtnActive]}
+                    onPress={() => setMaxMatches(v)}
+                  >
+                    <Text style={[styles.sliderText, maxMatches === v && styles.sliderTextActive]}>{v}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+            <View style={styles.configHalf}>
+              <Text style={styles.configTitle}>Jours</Text>
+              <View style={styles.sliderRow}>
+                {[3, 7, 14, 30].map(v => (
+                  <TouchableOpacity key={`d-${v}`}
+                    style={[styles.sliderBtnSm, days === v && styles.sliderBtnActive]}
+                    onPress={() => setDays(v)}
+                  >
+                    <Text style={[styles.sliderText, days === v && styles.sliderTextActive]}>{v}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+
+          <TouchableOpacity
                 key={v}
                 style={[styles.sliderBtn, minReliability === v && styles.sliderBtnActive]}
                 onPress={() => setMinReliability(v)}
@@ -133,7 +193,10 @@ export default function CouponScreen() {
                 <View key={i} style={styles.matchRow}>
                   <View style={styles.matchInfo}>
                     <Text style={styles.matchText}>{m.match}</Text>
-                    <Text style={styles.matchPred}>{m.prediction}</Text>
+                    <View style={styles.matchPredRow}>
+                      <Text style={styles.matchPred}>{m.prediction}</Text>
+                      <Text style={styles.matchOdds}>Cote: {m.odds}</Text>
+                    </View>
                   </View>
                   <View style={[styles.matchReliabBadge, {
                     backgroundColor: m.reliability >= 65 ? COLORS.success + '20' : COLORS.warning + '20',
@@ -237,7 +300,9 @@ const styles = StyleSheet.create({
   matchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   matchInfo: { flex: 1 },
   matchText: { color: COLORS.text, fontSize: FONTS.caption, fontWeight: '600' },
-  matchPred: { color: COLORS.primary, fontSize: FONTS.small, marginTop: 2, fontWeight: '500' },
+  matchPredRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2 },
+  matchPred: { color: COLORS.primary, fontSize: FONTS.small, fontWeight: '500' },
+  matchOdds: { color: COLORS.success, fontSize: FONTS.small, fontWeight: '700' },
   matchReliabBadge: { borderRadius: 12, paddingVertical: 4, paddingHorizontal: 12, borderWidth: 1, marginLeft: 10 },
   matchReliabText: { fontSize: FONTS.small, fontWeight: '700' },
   newCouponBtn: { marginTop: 16, padding: 16, alignItems: 'center', borderRadius: 12, borderWidth: 1.5, borderColor: COLORS.primary, backgroundColor: COLORS.primary + '08' },
@@ -255,4 +320,13 @@ const styles = StyleSheet.create({
   historyStats: { flexDirection: 'row', gap: 16 },
   historyStat: { color: COLORS.textSecondary, fontSize: FONTS.small, fontWeight: '600' },
   noHistory: { color: COLORS.textMuted, textAlign: 'center', marginTop: 16, fontSize: FONTS.caption },
+  oddsRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 16 },
+  oddsBtn: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 12, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
+  oddsBtnActive: { borderColor: COLORS.info, backgroundColor: COLORS.info + '20' },
+  oddsText: { color: COLORS.textMuted, fontSize: FONTS.caption, fontWeight: '600' },
+  oddsTextActive: { color: COLORS.info, fontWeight: '700' },
+  oddsSep: { color: COLORS.textMuted, fontSize: 18, marginHorizontal: 4 },
+  configRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  configHalf: { flex: 1 },
+  sliderBtnSm: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 12, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
 });

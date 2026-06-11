@@ -187,17 +187,21 @@ def predict_all():
 
 @app.route("/api/coupon", methods=["GET"])
 def generate_coupon():
-    league = request.args.get("league")
     min_reliability = int(request.args.get("min_reliability", 60))
     max_matches = int(request.args.get("max_matches", 5))
+    min_odds = float(request.args.get("min_odds", 1.0))
+    max_odds = float(request.args.get("max_odds", 10.0))
+    days = int(request.args.get("days", 7))
 
     matches = get_matches(live_only=False)
     if not matches:
         matches = get_mock_matches()
     historical = get_historical_data()
 
-    if league:
-        matches = [m for m in matches if m["league"] == league]
+    if days > 0:
+        from datetime import timedelta
+        cutoff = (datetime.now() + timedelta(days=days)).isoformat()
+        matches = [m for m in matches if m.get("date", "") <= cutoff]
 
     if predictor.model is None:
         predictor.train(historical)
@@ -208,7 +212,7 @@ def generate_coupon():
         if pred:
             predictions.append(pred)
 
-    coupon = predictor.generate_coupon(predictions, min_reliability, max_matches)
+    coupon = predictor.generate_coupon(predictions, min_reliability, max_matches, min_odds, max_odds)
     if not coupon:
         return jsonify({"error": "Aucun coupon disponible avec ces criteres"}), 400
 

@@ -29,8 +29,7 @@ export const predictionAPI = {
   getLeagues: () => api.get('/predictions/leagues'),
   getMatches: (league) => api.get('/predictions/matches', { params: { league } }),
   getAIPredictions: () => api.get('/predict-all'),
-  getCoupon: (league, minReliability, maxMatches) =>
-    api.get('/coupon', { params: { league, min_reliability: minReliability, max_matches: maxMatches } }),
+  getCoupon: (params = {}) => api.get('/coupon', { params }),
 };
 
 export const promoAPI = {
