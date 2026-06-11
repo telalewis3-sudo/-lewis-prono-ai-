@@ -8,14 +8,16 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 from .api_sports import fetch_live_matches, fetch_matches_by_date, fetch_matches_by_league
 
 def get_matches(live_only=False):
-    api_matches = fetch_matches_by_date() if not live_only else fetch_live_matches()
-    if api_matches and len(api_matches) > 0:
-        return api_matches
-    # Fallback: try each major league
-    for lid in [61, 39, 140, 135, 78, 88, 94, 144, 203]:
-        league_matches = fetch_matches_by_league(lid)
-        if league_matches and len(league_matches) > 0:
-            return league_matches
+    try:
+        api_matches = fetch_matches_by_date() if not live_only else fetch_live_matches()
+        if api_matches and len(api_matches) > 0:
+            return api_matches
+        for lid in [61, 39, 140, 135, 78, 88, 94, 144, 203]:
+            league_matches = fetch_matches_by_league(lid)
+            if league_matches and len(league_matches) > 0:
+                return league_matches
+    except Exception:
+        pass
     return get_mock_matches()
 
 LEAGUES = {
