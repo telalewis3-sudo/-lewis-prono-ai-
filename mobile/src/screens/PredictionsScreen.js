@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import GradientView from '../utils/GradientView';
 import { predictionAPI } from '../services/api';
 import { COLORS, FONTS, SHADOWS } from '../utils/constants';
 
-const { width } = Dimensions.get('window');
-
-export default function PredictionsScreen() {
+export default function PredictionsScreen({ navigation }) {
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -58,56 +56,61 @@ export default function PredictionsScreen() {
     return COLORS.danger;
   };
 
-  const renderPrediction = ({ item, index }) => (
-    <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [20 + index * 5, 0] }) }] }}>
-      <GradientView
-        colors={['#232A3D', '#1A1F2E']}
-        style={styles.card}
+  const renderPrediction = ({ item, index }) => {
+    const prob = item.probabilities || { home: 45, draw: 30, away: 25 };
+    const total = prob.home + prob.draw + prob.away;
+    const pHome = Math.round((prob.home / total) * 100);
+    const pDraw = Math.round((prob.draw / total) * 100);
+    const pAway = Math.round((prob.away / total) * 100);
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => navigation.navigate('MatchDetail', { prediction: item })}
       >
-        <View style={styles.cardTop}>
-          <View style={styles.leagueBadge}>
-            <Text style={styles.leagueText}>{item.league || 'International'}</Text>
-          </View>
-          <View style={[styles.reliabilityBadge, { backgroundColor: getReliabilityColor(item.reliability) }]}>
-            <Text style={styles.reliabilityText}>{item.reliability}%</Text>
-          </View>
-        </View>
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [20 + index * 5, 0] }) }] }}>
+          <GradientView colors={['#232A3D', '#1A1F2E']} style={styles.card}>
+            <View style={styles.cardTop}>
+              <View style={styles.leagueBadge}>
+                <Text style={styles.leagueText}>{item.league || 'International'}</Text>
+              </View>
+              <View style={[styles.reliabilityBadge, { backgroundColor: getReliabilityColor(item.reliability) }]}>
+                <Text style={styles.reliabilityText}>{item.reliability}%</Text>
+              </View>
+            </View>
 
-        <Text style={styles.matchText}>{item.match}</Text>
-        <Text style={styles.predictionText}>
-          Pronostic: <Text style={styles.predictionValue}>{item.prediction}</Text>
-        </Text>
-
-        <View style={styles.probRow}>
-          <View style={styles.probItem}>
-            <Text style={styles.probLabel}>1</Text>
-            <Text style={[styles.probValue, { color: COLORS.success }]}>{item.probabilities?.home || '-'}%</Text>
-          </View>
-          <View style={styles.probDivider} />
-          <View style={styles.probItem}>
-            <Text style={styles.probLabel}>N</Text>
-            <Text style={[styles.probValue, { color: COLORS.warning }]}>{item.probabilities?.draw || '-'}%</Text>
-          </View>
-          <View style={styles.probDivider} />
-          <View style={styles.probItem}>
-            <Text style={styles.probLabel}>2</Text>
-            <Text style={[styles.probValue, { color: COLORS.info }]}>{item.probabilities?.away || '-'}%</Text>
-          </View>
-        </View>
-
-        <View style={styles.cardFooter}>
-          <View style={[styles.confidenceBadge, { borderColor: getConfidenceColor(item.confidence_level) }]}>
-            <Text style={[styles.confidenceText, { color: getConfidenceColor(item.confidence_level) }]}>
-              {item.confidence_level || 'Moyen'}
+            <Text style={styles.matchText}>{item.match}</Text>
+            <Text style={styles.predictionText}>
+              Pronostic: <Text style={styles.predictionValue}>{item.prediction}</Text>
             </Text>
-          </View>
-          {item.cote && (
-            <Text style={styles.oddsText}>Cote: {item.cote}</Text>
-          )}
-        </View>
-      </GradientView>
-    </Animated.View>
-  );
+
+            <View style={styles.probBar}>
+              <View style={[styles.probSegment, { flex: pHome, backgroundColor: COLORS.success, borderTopLeftRadius: 6, borderBottomLeftRadius: 6 }]} />
+              <View style={[styles.probSegment, { flex: pDraw, backgroundColor: COLORS.warning }]} />
+              <View style={[styles.probSegment, { flex: pAway, backgroundColor: COLORS.info, borderTopRightRadius: 6, borderBottomRightRadius: 6 }]} />
+            </View>
+            <View style={styles.probLabels}>
+              <Text style={[styles.probLabel, { color: COLORS.success }]}>1: {pHome}%</Text>
+              <Text style={[styles.probLabel, { color: COLORS.warning }]}>N: {pDraw}%</Text>
+              <Text style={[styles.probLabel, { color: COLORS.info }]}>2: {pAway}%</Text>
+            </View>
+
+            <View style={styles.cardFooter}>
+              <View style={[styles.confidenceBadge, { borderColor: getConfidenceColor(item.confidence_level) }]}>
+                <Text style={[styles.confidenceText, { color: getConfidenceColor(item.confidence_level) }]}>
+                  {item.confidence_level || 'Moyen'}
+                </Text>
+              </View>
+              {item.cote && (
+                <Text style={styles.oddsText}>Cote: {item.cote}</Text>
+              )}
+              <Text style={styles.detailArrow}>›</Text>
+            </View>
+          </GradientView>
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
@@ -175,19 +178,12 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 32, fontWeight: '800', color: COLORS.text, letterSpacing: 1 },
   headerSubtitle: { fontSize: FONTS.caption, color: COLORS.textSecondary, marginTop: 4 },
   filterRow: { flexDirection: 'row', paddingHorizontal: 20, marginVertical: 12, gap: 8 },
-  filterBtn: {
-    paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20,
-    backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border,
-  },
+  filterBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
   filterBtnActive: { backgroundColor: COLORS.primary + '20', borderColor: COLORS.primary },
   filterText: { color: COLORS.textMuted, fontSize: FONTS.small, fontWeight: '600' },
   filterTextActive: { color: COLORS.primary, fontWeight: '700' },
   list: { padding: 16, paddingTop: 4 },
-  card: {
-    borderRadius: 16, padding: 16, marginBottom: 12,
-    borderWidth: 1, borderColor: COLORS.border,
-    ...SHADOWS.medium,
-  },
+  card: { borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border, ...SHADOWS.medium },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   leagueBadge: { backgroundColor: COLORS.surface, borderRadius: 6, paddingVertical: 3, paddingHorizontal: 8 },
   leagueText: { color: COLORS.textMuted, fontSize: FONTS.small },
@@ -196,18 +192,15 @@ const styles = StyleSheet.create({
   matchText: { fontSize: FONTS.body, fontWeight: '700', color: COLORS.text, marginBottom: 6 },
   predictionText: { fontSize: FONTS.caption, color: COLORS.textSecondary, marginBottom: 12 },
   predictionValue: { color: COLORS.primary, fontWeight: '700' },
-  probRow: {
-    flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center',
-    backgroundColor: COLORS.surface, borderRadius: 12, padding: 12, marginBottom: 12,
-  },
-  probItem: { alignItems: 'center', flex: 1 },
-  probDivider: { width: 1, height: 30, backgroundColor: COLORS.border },
-  probLabel: { fontSize: FONTS.small, color: COLORS.textMuted, marginBottom: 2, fontWeight: '600' },
-  probValue: { fontSize: FONTS.body, fontWeight: '700' },
+  probBar: { flexDirection: 'row', height: 12, borderRadius: 6, marginBottom: 8, overflow: 'hidden' },
+  probSegment: { height: '100%' },
+  probLabels: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+  probLabel: { fontSize: FONTS.small, fontWeight: '700' },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   confidenceBadge: { borderRadius: 6, borderWidth: 1, paddingVertical: 3, paddingHorizontal: 8 },
   confidenceText: { fontSize: FONTS.small, fontWeight: '600' },
   oddsText: { fontSize: FONTS.small, color: COLORS.textMuted },
+  detailArrow: { fontSize: 22, color: COLORS.textMuted, fontWeight: '300' },
   emptyContainer: { alignItems: 'center', marginTop: 60 },
   emptyIcon: { fontSize: 50, marginBottom: 16 },
   emptyText: { color: COLORS.textSecondary, fontSize: FONTS.body },

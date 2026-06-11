@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 RAPIDAPI_KEY = os.environ.get('RAPIDAPI_KEY', '')
 API_SPORTS_KEY = os.environ.get('API_SPORTS_KEY', '')
 RAPIDAPI_HOST = 'free-api-live-football-data.p.rapidapi.com'
+HIGHLIGHTS_HOST = 'football-highlights-api.p.rapidapi.com'
 
 # Use api-sports.io key if available, otherwise fall back to RapidAPI key
 ACTIVE_KEY = API_SPORTS_KEY or RAPIDAPI_KEY
@@ -121,6 +122,48 @@ def _transform_fixtures(fixtures):
         except Exception:
             continue
     return transformed
+
+def _highlights_get(endpoint, params=None):
+    if not RAPIDAPI_KEY:
+        return None
+    try:
+        url = f'https://{HIGHLIGHTS_HOST}/{endpoint.lstrip("/")}'
+        headers = {'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': HIGHLIGHTS_HOST}
+        response = requests.get(url, headers=headers, params=params, timeout=15)
+        if response.status_code == 200:
+            return response.json()
+    except Exception:
+        return None
+    return None
+
+def fetch_highlights(date=None, league_id=None, match_id=None, team_name=None, limit=20, offset=0):
+    params = {'limit': min(limit, 40), 'offset': offset}
+    if date: params['date'] = date
+    if league_id: params['leagueId'] = league_id
+    if match_id: params['matchId'] = match_id
+    if team_name: params['homeTeamName'] = team_name
+    data = _highlights_get('/highlights', params)
+    if data and 'data' in data:
+        return data['data']
+    return []
+
+def fetch_todays_highlights(limit=20):
+    return fetch_highlights(date=datetime.now().strftime('%Y-%m-%d'), limit=limit)
+
+def fetch_highlight_by_id(highlight_id):
+    data = _highlights_get(f'/highlights/{highlight_id}')
+    if data and isinstance(data, list) and len(data) > 0:
+        return data[0]
+    return None
+
+def fetch_highlights_matches(date=None, league_id=None, limit=20, offset=0):
+    params = {'limit': min(limit, 100), 'offset': offset}
+    if date: params['date'] = date
+    if league_id: params['leagueId'] = league_id
+    data = _highlights_get('/matches', params)
+    if data and 'data' in data:
+        return data['data']
+    return []
 
 def search_teams(query):
     if API_SPORTS_KEY:

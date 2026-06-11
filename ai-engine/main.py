@@ -224,6 +224,49 @@ def promo_bookmakers():
         {"id": "22bet", "name": "22Bet"}
     ]})
 
+@app.route("/api/highlights", methods=["GET"])
+def highlights():
+    date = request.args.get("date")
+    league_id = request.args.get("league_id")
+    match_id = request.args.get("match_id")
+    team = request.args.get("team")
+    limit = int(request.args.get("limit", 20))
+    offset = int(request.args.get("offset", 0))
+
+    from data.api_sports import fetch_highlights
+    results = fetch_highlights(
+        date=date,
+        league_id=int(league_id) if league_id else None,
+        match_id=int(match_id) if match_id else None,
+        team_name=team,
+        limit=limit,
+        offset=offset,
+    )
+    return jsonify({"highlights": results, "count": len(results)})
+
+@app.route("/api/highlights/today", methods=["GET"])
+def highlights_today():
+    limit = int(request.args.get("limit", 20))
+    from data.api_sports import fetch_todays_highlights
+    results = fetch_todays_highlights(limit=limit)
+    return jsonify({"highlights": results, "count": len(results)})
+
+@app.route("/api/highlights/matches", methods=["GET"])
+def highlights_matches():
+    date = request.args.get("date")
+    league_id = request.args.get("league_id")
+    limit = int(request.args.get("limit", 20))
+    offset = int(request.args.get("offset", 0))
+
+    from data.api_sports import fetch_highlights_matches
+    results = fetch_highlights_matches(
+        date=date,
+        league_id=int(league_id) if league_id else None,
+        limit=limit,
+        offset=offset,
+    )
+    return jsonify({"matches": results, "count": len(results)})
+
 # Alias routes for mobile app compatibility
 @app.route("/api/predictions/leagues", methods=["GET"])
 def predictions_leagues():

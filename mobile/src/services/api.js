@@ -38,4 +38,39 @@ export const promoAPI = {
   getBookmakers: () => api.get('/promo/bookmakers'),
 };
 
+// Local favorites storage (AsyncStorage-like via SecureStore)
+export const favoritesAPI = {
+  getFavorites: async () => {
+    try {
+      const data = await SecureStore.getItemAsync('favorites');
+      return data ? JSON.parse(data) : [];
+    } catch (e) { return []; }
+  },
+  addFavorite: async (prediction) => {
+    try {
+      const faves = await favoritesAPI.getFavorites();
+      const exists = faves.find(f => f.match === prediction.match);
+      if (!exists) {
+        faves.push({ ...prediction, added_at: new Date().toISOString() });
+        await SecureStore.setItemAsync('favorites', JSON.stringify(faves));
+      }
+      return faves;
+    } catch (e) { return []; }
+  },
+  removeFavorite: async (match) => {
+    try {
+      let faves = await favoritesAPI.getFavorites();
+      faves = faves.filter(f => f.match !== match);
+      await SecureStore.setItemAsync('favorites', JSON.stringify(faves));
+      return faves;
+    } catch (e) { return []; }
+  },
+};
+
+export const highlightsAPI = {
+  getHighlights: (params = {}) => api.get('/highlights', { params }),
+  getTodaysHighlights: (limit = 20) => api.get('/highlights/today', { params: { limit } }),
+  getHighlightMatches: (params = {}) => api.get('/highlights/matches', { params }),
+};
+
 export default api;

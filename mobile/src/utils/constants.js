@@ -63,6 +63,10 @@ export const SHADOWS = {
   },
 };
 
+export const FOOTBALL_API_KEY = '4fcd095e8284eb9bf1bd23c0bb83a792';
+export const FOOTBALL_API_BASE = 'https://v3.football.api-sports.io';
+export const RAPIDAPI_KEY = 'a9126e9090msh2e4d9a383218738p11f2f7jsn73c7409a7d28';
+
 export const FONTS = {
   title: 28,
   subtitle: 20,
@@ -70,3 +74,8 @@ export const FONTS = {
   caption: 13,
   small: 11,
 };
+
+export const SHARE_TEXT = '📢 {match} — Pronostic: {prediction} (fiabilité: {reliability}%) via Lewis Prono AI 🏆';
+export const WORLD_CUP_2026 = new Date('2026-06-11T00:00:00Z');
+
+export const SHOW_WELCOME_ONCE = true;

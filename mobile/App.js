@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Animated } from 'react-native';
+import { View, Text, Animated } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,38 +7,51 @@ import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import PredictionsScreen from './src/screens/PredictionsScreen';
 import CouponScreen from './src/screens/CouponScreen';
-import PromoScreen from './src/screens/PromoScreen';
-import LoginScreen from './src/screens/LoginScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import MatchDetailScreen from './src/screens/MatchDetailScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const TAB_ICONS = {
+  Accueil: '🏠',
+  Pronostics: '🎯',
+  Coupon: '📋',
+  Profil: '👤',
+};
+
+function TabIcon({ label, color }) {
+  return (
+    <Text style={{ fontSize: 20, color, marginBottom: -2 }}>{TAB_ICONS[label]}</Text>
+  );
+}
+
 function MainTabs() {
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarIcon: ({ color }) => <TabIcon label={route.name} color={color} />,
         tabBarStyle: {
           backgroundColor: '#1A1F2E',
           borderTopColor: '#2A3248',
           borderTopWidth: 1,
-          height: 65,
-          paddingBottom: 10,
-          paddingTop: 8,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 6,
         },
         tabBarActiveTintColor: '#D4A574',
         tabBarInactiveTintColor: '#5A6478',
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-      }}
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '700' },
+      })}
     >
       <Tab.Screen name="Accueil" component={HomeScreen} options={{ tabBarLabel: 'Accueil' }} />
       <Tab.Screen name="Pronostics" component={PredictionsScreen} options={{ tabBarLabel: 'Pronostics' }} />
       <Tab.Screen name="Coupon" component={CouponScreen} options={{ tabBarLabel: 'Coupon' }} />
-      <Tab.Screen name="Promo" component={PromoScreen} options={{ tabBarLabel: 'Promo' }} />
       <Tab.Screen name="Profil" component={ProfileScreen} options={{ tabBarLabel: 'Profil' }} />
     </Tab.Navigator>
   );
@@ -49,9 +62,7 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState('Welcome');
   const splashOpacity = useRef(new Animated.Value(1)).current;
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  useEffect(() => { checkAuth(); }, []);
 
   async function checkAuth() {
     try {
@@ -61,9 +72,7 @@ export default function App() {
       setInitialRoute('Welcome');
     }
     Animated.timing(splashOpacity, {
-      toValue: 0,
-      duration: 600,
-      useNativeDriver: true,
+      toValue: 0, duration: 600, useNativeDriver: true,
     }).start(() => setIsReady(true));
   }
 
@@ -92,6 +101,7 @@ export default function App() {
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Main" component={MainTabs} />
+        <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
