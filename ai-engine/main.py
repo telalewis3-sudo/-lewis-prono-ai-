@@ -135,7 +135,7 @@ def train():
     return jsonify({"status": "success", "accuracy": accuracy})
 
 @app.route("/api/matches", methods=["GET"])
-def get_matches():
+def route_matches():
     matches = get_mock_matches()
     league = request.args.get("league")
     if league:
