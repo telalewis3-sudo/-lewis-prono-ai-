@@ -71,6 +71,7 @@ export const highlightsAPI = {
   getHighlights: (params = {}) => api.get('/highlights', { params }),
   getTodaysHighlights: (limit = 20) => api.get('/highlights/today', { params: { limit } }),
   getHighlightMatches: (params = {}) => api.get('/highlights/matches', { params }),
+  getUpcomingFixtures: (days = 7) => api.get('/fixtures/upcoming', { params: { days } }),
 };
 
 export default api;

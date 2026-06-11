@@ -244,6 +244,20 @@ def highlights():
     )
     return jsonify({"highlights": results, "count": len(results)})
 
+@app.route("/api/fixtures/upcoming", methods=["GET"])
+def fixtures_upcoming():
+    days = int(request.args.get("days", 7))
+    from data.api_sports import fetch_matches_by_date
+    from datetime import timedelta
+    today = datetime.now()
+    results = []
+    for i in range(days):
+        date = (today + timedelta(days=i)).strftime('%Y-%m-%d')
+        matches = fetch_matches_by_date(date)
+        if matches:
+            results.append({"date": date, "matches": matches})
+    return jsonify({"fixtures": results, "count": len(results)})
+
 @app.route("/api/highlights/today", methods=["GET"])
 def highlights_today():
     limit = int(request.args.get("limit", 20))

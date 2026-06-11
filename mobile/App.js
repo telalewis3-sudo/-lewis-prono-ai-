@@ -13,6 +13,7 @@ import PredictionsScreen from './src/screens/PredictionsScreen';
 import CouponScreen from './src/screens/CouponScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import MatchDetailScreen from './src/screens/MatchDetailScreen';
+import FixturesScreen from './src/screens/FixturesScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -102,6 +103,7 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Main" component={MainTabs} />
         <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
+        <Stack.Screen name="Fixtures" component={FixturesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

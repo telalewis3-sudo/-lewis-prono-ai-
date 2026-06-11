@@ -452,6 +452,12 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.actionTextOutline}>Generer un coupon</Text>
             </View>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Fixtures')} activeOpacity={0.8}>
+            <GradientView colors={[COLORS.secondary, COLORS.secondary + '99']} style={styles.actionGradient}>
+              <Text style={styles.actionIcon}>📅</Text>
+              <Text style={styles.actionText}>Matchs a venir (7j)</Text>
+            </GradientView>
+          </TouchableOpacity>
         </View>
 
         <View style={{ height: 40 }} />
