@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated, Dimensions, Share, Easing } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated, Dimensions, Share, Easing, Linking, Image } from 'react-native';
 import GradientView from '../utils/GradientView';
-import { predictionAPI, favoritesAPI } from '../services/api';
+import { predictionAPI, favoritesAPI, highlightsAPI } from '../services/api';
 import { getLiveFixtures, formatFixture } from '../services/liveApi';
 import { COLORS, FONTS, SHADOWS, APP_NAME, BOOKMAKERS, SHARE_TEXT, WORLD_CUP_2026 } from '../utils/constants';
 
@@ -21,6 +21,7 @@ export default function HomeScreen({ navigation }) {
   const [predictions, setPredictions] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [liveMatches, setLiveMatches] = useState([]);
+  const [highlights, setHighlights] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [greeting, setGreeting] = useState('');
   const [wcCountdown, setWcCountdown] = useState('');
@@ -59,6 +60,7 @@ export default function HomeScreen({ navigation }) {
     await loadData();
     await loadFavorites();
     await fetchLiveScores();
+    await fetchHighlights();
   }
 
   async function fetchLiveScores() {
@@ -78,6 +80,16 @@ export default function HomeScreen({ navigation }) {
     } catch (e) {}
     setApiConnected(false);
     generateSimulatedScores();
+  }
+
+  async function fetchHighlights() {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const res = await highlightsAPI.getHighlights({ date: today, limit: 10 });
+      if (res.data && res.data.highlights && res.data.highlights.length > 0) {
+        setHighlights(res.data.highlights);
+      }
+    } catch (e) {}
   }
 
   async function refreshLiveOnly() {
@@ -333,6 +345,42 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
 
+        {highlights.length > 0 && (
+          <View>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>🎬 Highlights</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.predictionsScroll} contentContainerStyle={styles.predictionsContent}>
+              {highlights.map((h) => (
+                <TouchableOpacity key={h.id} activeOpacity={0.9} onPress={() => {
+                  if (h.url) Linking.openURL(h.url).catch(() => {});
+                }}>
+                  <Animated.View style={[styles.highlightCard, { opacity: fadeAnim }]}>
+                    <GradientView colors={['#232A3D', '#1A1F2E']} style={styles.highlightGradient}>
+                      {h.imgUrl && <Image source={{ uri: h.imgUrl }} style={styles.highlightThumb} />}
+                      <Text style={styles.highlightTitle} numberOfLines={2}>{h.title}</Text>
+                      {h.match && (
+                        <View style={styles.highlightMatchRow}>
+                          <Text style={styles.highlightMatchScore}>
+                            {h.match.homeTeam?.name || '?'} vs {h.match.awayTeam?.name || '?'}
+                            {h.match.state?.score?.current ? ` (${h.match.state.score.current})` : ''}
+                          </Text>
+                        </View>
+                      )}
+                      <View style={styles.highlightFooter}>
+                        <Text style={styles.highlightSource}>{h.source}</Text>
+                        <Text style={[styles.highlightType, {
+                          color: h.type === 'VERIFIED' ? COLORS.success : COLORS.warning
+                        }]}>{h.type === 'VERIFIED' ? '✅ Verifie' : '⏳ Recent'}</Text>
+                      </View>
+                    </GradientView>
+                  </Animated.View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Pronostics du jour</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Pronostics')}>
@@ -488,4 +536,13 @@ const styles = StyleSheet.create({
   liveScoreSep: { fontSize: 22, fontWeight: '800', color: COLORS.textMuted, marginHorizontal: 4 },
   liveMinuteBadge: { borderRadius: 8, paddingVertical: 2, paddingHorizontal: 8, marginTop: 4 },
   liveMinute: { fontSize: 10, fontWeight: '800', color: COLORS.text },
+  highlightCard: { width: CARD_WIDTH, marginRight: 12, borderRadius: 16, overflow: 'hidden', ...SHADOWS.medium },
+  highlightGradient: { padding: 12, borderWidth: 1, borderColor: COLORS.border, borderRadius: 16 },
+  highlightThumb: { width: '100%', height: 100, borderRadius: 8, marginBottom: 8, backgroundColor: COLORS.surface },
+  highlightTitle: { fontSize: FONTS.small, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
+  highlightMatchRow: { marginBottom: 4 },
+  highlightMatchScore: { fontSize: 10, color: COLORS.textSecondary },
+  highlightFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
+  highlightSource: { fontSize: 9, color: COLORS.textMuted, textTransform: 'uppercase' },
+  highlightType: { fontSize: 9, fontWeight: '600' },
 });
