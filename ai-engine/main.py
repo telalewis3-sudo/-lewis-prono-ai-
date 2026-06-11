@@ -11,10 +11,6 @@ CORS(app)
 JWT_SECRET = 'apk-ai-secret-key-2026'
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'backend', 'apk_ai.db')
 
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-init_db()
-predictor = FootballPredictor()
-
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     conn.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -52,6 +48,10 @@ def init_db():
                      (str(uuid.uuid4()), 'MELBET2026', 'melbet', 100))
     conn.commit()
     conn.close()
+
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+init_db()
+predictor = FootballPredictor()
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
