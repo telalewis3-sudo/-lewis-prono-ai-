@@ -11,7 +11,47 @@ CORS(app)
 JWT_SECRET = 'apk-ai-secret-key-2026'
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'backend', 'apk_ai.db')
 
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+init_db()
 predictor = FootballPredictor()
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute('''CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL, password TEXT NOT NULL,
+        promo_code TEXT, bookmaker TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        premium_until DATETIME)''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS coupons (
+        id TEXT PRIMARY KEY, user_id TEXT,
+        matches TEXT NOT NULL, total_odds REAL NOT NULL,
+        combined_reliability REAL NOT NULL,
+        status TEXT DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id))''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS predictions (
+        id TEXT PRIMARY KEY, match_home TEXT NOT NULL,
+        match_away TEXT NOT NULL, league TEXT,
+        prediction TEXT NOT NULL, reliability REAL NOT NULL,
+        odds_h REAL, odds_d REAL, odds_a REAL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP)''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS promo_codes (
+        id TEXT PRIMARY KEY, code TEXT UNIQUE NOT NULL,
+        bookmaker TEXT NOT NULL, bonus_days INTEGER DEFAULT 7,
+        used INTEGER DEFAULT 0, max_uses INTEGER DEFAULT 100,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP)''')
+    count = conn.execute("SELECT COUNT(*) FROM promo_codes").fetchone()[0]
+    if count == 0:
+        import uuid
+        conn.execute("INSERT INTO promo_codes (id, code, bookmaker, max_uses) VALUES (?, ?, ?, ?)",
+                     (str(uuid.uuid4()), '1XBET2026', '1xbet', 100))
+        conn.execute("INSERT INTO promo_codes (id, code, bookmaker, max_uses) VALUES (?, ?, ?, ?)",
+                     (str(uuid.uuid4()), 'BETPAWA2026', 'betpawa', 100))
+        conn.execute("INSERT INTO promo_codes (id, code, bookmaker, max_uses) VALUES (?, ?, ?, ?)",
+                     (str(uuid.uuid4()), 'MELBET2026', 'melbet', 100))
+    conn.commit()
+    conn.close()
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)

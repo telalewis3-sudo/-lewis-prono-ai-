@@ -1,10 +1,7 @@
 import { Platform, Dimensions } from 'react-native';
 
 const getApiUrl = () => {
-  // Pour le developpement local (WiFi)
-  // return 'http://192.168.0.115:5000/api';
-  // Pour la production (Render) - changez par l'URL Render
-  return 'http://192.168.0.115:5000/api';
+  return 'https://Mrlewis.pythonanywhere.com/api';
 };
 
 export const API_URL = getApiUrl();
