@@ -83,6 +83,16 @@ export default function CouponScreen() {
           <Text style={styles.configValue}>{minReliability}%</Text>
           <View style={styles.sliderRow}>
             {reliabilityLevels.map(v => (
+              <TouchableOpacity
+                key={v}
+                style={[styles.sliderBtn, minReliability === v && styles.sliderBtnActive]}
+                onPress={() => setMinReliability(v)}
+              >
+                <Text style={[styles.sliderText, minReliability === v && styles.sliderTextActive]}>{v}%</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <Text style={[styles.configTitle, { marginTop: 20 }]}>Cote min - max</Text>
           <View style={styles.oddsRow}>
             {[1.0, 1.5, 2.0, 3.0, 5.0].map(v => (
@@ -131,16 +141,6 @@ export default function CouponScreen() {
                 ))}
               </View>
             </View>
-          </View>
-
-          <TouchableOpacity
-                key={v}
-                style={[styles.sliderBtn, minReliability === v && styles.sliderBtnActive]}
-                onPress={() => setMinReliability(v)}
-              >
-                <Text style={[styles.sliderText, minReliability === v && styles.sliderTextActive]}>{v}%</Text>
-              </TouchableOpacity>
-            ))}
           </View>
 
           <TouchableOpacity

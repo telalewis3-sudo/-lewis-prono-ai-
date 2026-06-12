@@ -5,9 +5,43 @@ from datetime import datetime, timedelta
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 # Sports API integration (optional)
-from .api_sports import fetch_live_matches, fetch_matches_by_date, fetch_matches_by_league
+from .api_sports import fetch_live_matches, fetch_matches_by_date, fetch_matches_by_league, fetch_highlights_matches
+
+def _highlights_to_matches(hl_matches):
+    result = []
+    for m in hl_matches:
+        try:
+            home = m.get("homeTeam", {}).get("name", "")
+            away = m.get("awayTeam", {}).get("name", "")
+            league = m.get("league", {}).get("name", "International")
+            date = m.get("date", datetime.now().isoformat())
+            score = m.get("state", {}).get("score", {}).get("current", None)
+            home_goals, away_goals = None, None
+            if score and "-" in score:
+                parts = score.split("-")
+                home_goals = int(parts[0].strip())
+                away_goals = int(parts[1].strip())
+            result.append({
+                "id": m.get("id", 0),
+                "home": home, "away": away,
+                "league": league, "date": date,
+                "odds_h": 2.00, "odds_d": 3.30, "odds_a": 3.50,
+                "home_goals": home_goals, "away_goals": away_goals,
+                "score": score,
+            })
+        except Exception:
+            continue
+    return result
 
 def get_matches(live_only=False):
+    try:
+        if not live_only:
+            today = datetime.now().strftime("%Y-%m-%d")
+            hl = fetch_highlights_matches(date=today, limit=50)
+            if hl and len(hl) > 0:
+                return _highlights_to_matches(hl)
+    except Exception:
+        pass
     try:
         api_matches = fetch_matches_by_date() if not live_only else fetch_live_matches()
         if api_matches and len(api_matches) > 0:
