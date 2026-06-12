@@ -315,7 +315,7 @@ def predictions_matches():
     live_only = request.args.get("live", "false").lower() == "true"
     matches = get_matches(live_only=live_only)
     if not matches:
-    matches = []
+        matches = []
     league = request.args.get("league")
     if league:
         matches = [m for m in matches if m["league"] == league]
