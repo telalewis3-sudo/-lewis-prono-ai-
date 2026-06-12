@@ -93,15 +93,23 @@ def get_upcoming_fixtures(days=7):
     today = datetime.now()
     for i in range(days):
         date = (today + timedelta(days=i)).strftime("%Y-%m-%d")
+        matches = []
         try:
             hl = fetch_highlights_matches(date=date, limit=50)
             if hl and len(hl) > 0:
                 matches = _highlights_to_matches(hl, filter_top=True)
                 if len(matches) < 3:
                     matches = _highlights_to_matches(hl, filter_top=False)
-                results.append({"date": date, "matches": matches})
         except Exception:
-            continue
+            pass
+        if not matches:
+            try:
+                api_matches = fetch_matches_by_date(date)
+                if api_matches and len(api_matches) > 0:
+                    matches = api_matches
+            except Exception:
+                pass
+        results.append({"date": date, "matches": matches})
     return results
 
 LEAGUES = {
