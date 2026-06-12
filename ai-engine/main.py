@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from predictors.football_predictor import FootballPredictor
-from data.data_fetcher import get_matches, get_mock_matches, get_historical_data
+from data.data_fetcher import get_matches, get_historical_data
 
 app = Flask(__name__)
 CORS(app)
@@ -136,7 +136,7 @@ def train():
 
 @app.route("/api/matches", methods=["GET"])
 def route_matches():
-    matches = get_mock_matches()
+    matches = []
     league = request.args.get("league")
     if league:
         matches = [m for m in matches if m["league"] == league]
@@ -152,7 +152,7 @@ def get_leagues():
 def predict():
     data = request.get_json()
     match_id = data.get("match_id")
-    matches = get_mock_matches()
+    matches = []
     historical = get_historical_data()
 
     match = next((m for m in matches if m["id"] == match_id), None)
@@ -169,9 +169,7 @@ def predict():
 def predict_all():
     matches = get_matches(live_only=False)
     if not matches:
-        matches = get_matches(live_only=False)
-    if not matches:
-        matches = get_mock_matches()
+        matches = []
     historical = get_historical_data()
 
     if predictor.model is None:
@@ -195,7 +193,7 @@ def generate_coupon():
 
     matches = get_matches(live_only=False)
     if not matches:
-        matches = get_mock_matches()
+        matches = []
     historical = get_historical_data()
 
     if days > 0:
@@ -290,8 +288,7 @@ def route_live():
     from data.data_fetcher import get_matches
     matches = get_matches(live_only=True)
     if not matches:
-        from data.data_fetcher import get_mock_matches
-        matches = get_mock_matches()
+        matches = []
     formatted = []
     for m in matches:
         home_goals = m.get("home_goals") if m.get("home_goals") is not None else "-"
@@ -318,7 +315,7 @@ def predictions_matches():
     live_only = request.args.get("live", "false").lower() == "true"
     matches = get_matches(live_only=live_only)
     if not matches:
-        matches = get_mock_matches()
+    matches = []
     league = request.args.get("league")
     if league:
         matches = [m for m in matches if m["league"] == league]

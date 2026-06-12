@@ -86,7 +86,7 @@ def get_matches(live_only=False):
                 return league_matches
     except Exception:
         pass
-    return get_mock_matches()
+    return []
 
 def get_upcoming_fixtures(days=7):
     results = []
@@ -128,61 +128,6 @@ LEAGUES = {
     "Africa Cup of Nations": "AFCON",
     "Coupe du Monde 2026": "WC2026",
 }
-
-def get_mock_matches():
-    today = datetime.now()
-    return [
-        # Ligue 1
-        {"id": 1, "home": "PSG", "away": "Marseille", "league": "Ligue 1", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 1.45, "odds_d": 4.50, "odds_a": 6.00},
-        {"id": 2, "home": "Lyon", "away": "Monaco", "league": "Ligue 1", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 2.30, "odds_d": 3.40, "odds_a": 3.00},
-        {"id": 3, "home": "Lille", "away": "Nice", "league": "Ligue 1", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 2.10, "odds_d": 3.20, "odds_a": 3.60},
-        {"id": 4, "home": "Rennes", "away": "Lens", "league": "Ligue 1", "date": (today + timedelta(days=3)).isoformat(), "odds_h": 2.00, "odds_d": 3.30, "odds_a": 3.50},
-        # Ligue 2
-        {"id": 5, "home": "Metz", "away": "Bordeaux", "league": "Ligue 2", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 2.15, "odds_d": 3.10, "odds_a": 3.40},
-        {"id": 6, "home": "Saint-Etienne", "away": "Caen", "league": "Ligue 2", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 1.95, "odds_d": 3.30, "odds_a": 3.80},
-        # Premier League
-        {"id": 7, "home": "Manchester City", "away": "Arsenal", "league": "Premier League", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 1.70, "odds_d": 4.00, "odds_a": 4.50},
-        {"id": 8, "home": "Liverpool", "away": "Chelsea", "league": "Premier League", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 1.80, "odds_d": 3.70, "odds_a": 4.00},
-        {"id": 9, "home": "Manchester United", "away": "Tottenham", "league": "Premier League", "date": (today + timedelta(days=3)).isoformat(), "odds_h": 2.40, "odds_d": 3.40, "odds_a": 2.90},
-        {"id": 10, "home": "Newcastle", "away": "Aston Villa", "league": "Premier League", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 2.00, "odds_d": 3.50, "odds_a": 3.40},
-        # Championship
-        {"id": 11, "home": "Leeds", "away": "Southampton", "league": "Championship", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 2.20, "odds_d": 3.30, "odds_a": 3.20},
-        {"id": 12, "home": "Leicester", "away": "West Brom", "league": "Championship", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 1.65, "odds_d": 3.80, "odds_a": 4.80},
-        # La Liga
-        {"id": 13, "home": "Real Madrid", "away": "Barcelona", "league": "La Liga", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 2.10, "odds_d": 3.40, "odds_a": 3.50},
-        {"id": 14, "home": "Atletico Madrid", "away": "Sevilla", "league": "La Liga", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 1.75, "odds_d": 3.60, "odds_a": 4.50},
-        {"id": 15, "home": "Barcelona", "away": "Real Sociedad", "league": "La Liga", "date": (today + timedelta(days=3)).isoformat(), "odds_h": 1.50, "odds_d": 4.20, "odds_a": 5.50},
-        # Serie A
-        {"id": 16, "home": "Inter Milan", "away": "AC Milan", "league": "Serie A", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 2.20, "odds_d": 3.30, "odds_a": 3.20},
-        {"id": 17, "home": "Juventus", "away": "Napoli", "league": "Serie A", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 2.50, "odds_d": 3.10, "odds_a": 2.90},
-        {"id": 18, "home": "AS Roma", "away": "Lazio", "league": "Serie A", "date": (today + timedelta(days=4)).isoformat(), "odds_h": 2.30, "odds_d": 3.20, "odds_a": 3.10},
-        # Bundesliga
-        {"id": 19, "home": "Bayern Munich", "away": "Dortmund", "league": "Bundesliga", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 1.50, "odds_d": 4.20, "odds_a": 5.50},
-        {"id": 20, "home": "Leipzig", "away": "Leverkusen", "league": "Bundesliga", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 2.10, "odds_d": 3.50, "odds_a": 3.20},
-        # Liga Portugal
-        {"id": 21, "home": "Benfica", "away": "Porto", "league": "Liga Portugal", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 1.80, "odds_d": 3.60, "odds_a": 4.00},
-        {"id": 22, "home": "Sporting", "away": "Braga", "league": "Liga Portugal", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 1.70, "odds_d": 3.70, "odds_a": 4.50},
-        # Eredivisie
-        {"id": 23, "home": "Ajax", "away": "Feyenoord", "league": "Eredivisie", "date": (today + timedelta(days=3)).isoformat(), "odds_h": 2.05, "odds_d": 3.50, "odds_a": 3.30},
-        {"id": 24, "home": "PSV", "away": "AZ Alkmaar", "league": "Eredivisie", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 1.60, "odds_d": 4.00, "odds_a": 4.80},
-        # Jupiler Pro League
-        {"id": 25, "home": "Anderlecht", "away": "Club Brugge", "league": "Jupiler Pro League", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 2.50, "odds_d": 3.20, "odds_a": 2.80},
-        {"id": 26, "home": "Genk", "away": "Standard", "league": "Jupiler Pro League", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 1.90, "odds_d": 3.50, "odds_a": 3.70},
-        # Süper Lig
-        {"id": 27, "home": "Galatasaray", "away": "Fenerbahce", "league": "Süper Lig", "date": (today + timedelta(days=1)).isoformat(), "odds_h": 2.20, "odds_d": 3.30, "odds_a": 3.10},
-        {"id": 28, "home": "Besiktas", "away": "Trabzonspor", "league": "Süper Lig", "date": (today + timedelta(days=2)).isoformat(), "odds_h": 1.85, "odds_d": 3.50, "odds_a": 4.00},
-        # Champions League
-        {"id": 29, "home": "Manchester City", "away": "Real Madrid", "league": "Champions League", "date": (today + timedelta(days=5)).isoformat(), "odds_h": 1.90, "odds_d": 3.60, "odds_a": 3.80},
-        {"id": 30, "home": "Bayern Munich", "away": "PSG", "league": "Champions League", "date": (today + timedelta(days=6)).isoformat(), "odds_h": 1.70, "odds_d": 4.10, "odds_a": 4.50},
-        # Coupe du Monde 2026
-        {"id": 31, "home": "France", "away": "Bresil", "league": "Coupe du Monde 2026", "date": (today + timedelta(days=10)).isoformat(), "odds_h": 2.40, "odds_d": 3.20, "odds_a": 3.00},
-        {"id": 32, "home": "Argentine", "away": "Allemagne", "league": "Coupe du Monde 2026", "date": (today + timedelta(days=10)).isoformat(), "odds_h": 2.10, "odds_d": 3.30, "odds_a": 3.50},
-        {"id": 33, "home": "Angleterre", "away": "Espagne", "league": "Coupe du Monde 2026", "date": (today + timedelta(days=11)).isoformat(), "odds_h": 2.30, "odds_d": 3.10, "odds_a": 3.20},
-        {"id": 34, "home": "Portugal", "away": "Pays-Bas", "league": "Coupe du Monde 2026", "date": (today + timedelta(days=11)).isoformat(), "odds_h": 2.15, "odds_d": 3.30, "odds_a": 3.40},
-        {"id": 35, "home": "Maroc", "away": "Senegal", "league": "Coupe du Monde 2026", "date": (today + timedelta(days=12)).isoformat(), "odds_h": 2.50, "odds_d": 3.00, "odds_a": 3.00},
-        {"id": 36, "home": "Cote d'Ivoire", "away": "Nigeria", "league": "Africa Cup of Nations", "date": (today + timedelta(days=8)).isoformat(), "odds_h": 2.30, "odds_d": 3.10, "odds_a": 3.20},
-        {"id": 37, "home": "Egypte", "away": "Cameroun", "league": "Africa Cup of Nations", "date": (today + timedelta(days=9)).isoformat(), "odds_h": 2.00, "odds_d": 3.20, "odds_a": 3.70},
-    ]
 
 def get_historical_data():
     filepath = os.path.join(DATA_DIR, "historical_matches.json")
