@@ -251,15 +251,8 @@ def highlights():
 @app.route("/api/fixtures/upcoming", methods=["GET"])
 def fixtures_upcoming():
     days = int(request.args.get("days", 7))
-    from data.api_sports import fetch_matches_by_date
-    from datetime import timedelta
-    today = datetime.now()
-    results = []
-    for i in range(days):
-        date = (today + timedelta(days=i)).strftime('%Y-%m-%d')
-        matches = fetch_matches_by_date(date)
-        if matches:
-            results.append({"date": date, "matches": matches})
+    from data.data_fetcher import get_upcoming_fixtures
+    results = get_upcoming_fixtures(days=days)
     return jsonify({"fixtures": results, "count": len(results)})
 
 @app.route("/api/highlights/today", methods=["GET"])
@@ -291,6 +284,34 @@ def predictions_leagues():
     from data.data_fetcher import LEAGUES
     leagues = [{"name": k, "code": v} for k, v in LEAGUES.items()]
     return jsonify({"leagues": leagues})
+
+@app.route("/api/live", methods=["GET"])
+def route_live():
+    from data.data_fetcher import get_matches
+    matches = get_matches(live_only=True)
+    if not matches:
+        from data.data_fetcher import get_mock_matches
+        matches = get_mock_matches()
+    formatted = []
+    for m in matches:
+        home_goals = m.get("home_goals") if m.get("home_goals") is not None else "-"
+        away_goals = m.get("away_goals") if m.get("away_goals") is not None else "-"
+        formatted.append({
+            "id": m.get("id", 0),
+            "match": f"{m['home']} vs {m['away']}",
+            "home": m["home"], "away": m["away"],
+            "scoreHome": home_goals,
+            "scoreAway": away_goals,
+            "minute": 45,
+            "status": "1H" if m.get("score") else "NS",
+            "date": m.get("date", ""),
+            "league": m.get("league", "International"),
+            "homeLogo": "", "awayLogo": "",
+            "isLive": bool(m.get("score")),
+            "isUpcoming": not bool(m.get("score")),
+            "isFinished": False,
+        })
+    return jsonify({"response": formatted, "count": len(formatted)})
 
 @app.route("/api/predictions/matches", methods=["GET"])
 def predictions_matches():

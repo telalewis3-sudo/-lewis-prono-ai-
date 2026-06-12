@@ -7,13 +7,36 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 # Sports API integration (optional)
 from .api_sports import fetch_live_matches, fetch_matches_by_date, fetch_matches_by_league, fetch_highlights_matches
 
-def _highlights_to_matches(hl_matches):
+TOP_LEAGUE_KEYWORDS = [
+    "Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1",
+    "Championship", "Primeira Liga", "Liga Portugal", "Eredivisie",
+    "Jupiler Pro League", "Süper Lig", "Scottish Premiership",
+    "Serie A Brazil", "Brasileirão", "MLS", "Ligue 2",
+    "Champions League", "Europa League", "Conference League",
+    "World Cup", "Coupe du Monde", "Africa Cup", "CAN",
+    "Copa América", "Euro", "European Championship",
+    "Premier League Women", "FA Cup", "DFB-Pokal", "Coppa Italia",
+    "Coupe de France", "Copa del Rey", "League One", "League Two",
+    "Championship Women", "Liga MX", "Argentine Primera",
+    "Primeira Argentina",
+]
+
+def _is_top_league(league_name):
+    name_lower = league_name.lower()
+    for kw in TOP_LEAGUE_KEYWORDS:
+        if kw.lower() in name_lower:
+            return True
+    return False
+
+def _highlights_to_matches(hl_matches, filter_top=True):
     result = []
     for m in hl_matches:
         try:
             home = m.get("homeTeam", {}).get("name", "")
             away = m.get("awayTeam", {}).get("name", "")
             league = m.get("league", {}).get("name", "International")
+            if filter_top and not _is_top_league(league):
+                continue
             date = m.get("date", datetime.now().isoformat())
             score = m.get("state", {}).get("score", {}).get("current", None)
             home_goals, away_goals = None, None
@@ -37,9 +60,20 @@ def get_matches(live_only=False):
     try:
         if not live_only:
             today = datetime.now().strftime("%Y-%m-%d")
-            hl = fetch_highlights_matches(date=today, limit=50)
+            hl = fetch_highlights_matches(date=today, limit=100)
             if hl and len(hl) > 0:
-                return _highlights_to_matches(hl)
+                filtered = _highlights_to_matches(hl, filter_top=True)
+                if len(filtered) >= 5:
+                    return filtered
+                return _highlights_to_matches(hl, filter_top=False)
+        else:
+            today = datetime.now().strftime("%Y-%m-%d")
+            hl = fetch_highlights_matches(date=today, limit=100)
+            if hl and len(hl) > 0:
+                filtered = _highlights_to_matches(hl, filter_top=False)
+                live = [m for m in filtered if m.get("score") and m["home_goals"] is not None]
+                if live:
+                    return live
     except Exception:
         pass
     try:
@@ -53,6 +87,22 @@ def get_matches(live_only=False):
     except Exception:
         pass
     return get_mock_matches()
+
+def get_upcoming_fixtures(days=7):
+    results = []
+    today = datetime.now()
+    for i in range(days):
+        date = (today + timedelta(days=i)).strftime("%Y-%m-%d")
+        try:
+            hl = fetch_highlights_matches(date=date, limit=50)
+            if hl and len(hl) > 0:
+                matches = _highlights_to_matches(hl, filter_top=True)
+                if len(matches) < 3:
+                    matches = _highlights_to_matches(hl, filter_top=False)
+                results.append({"date": date, "matches": matches})
+        except Exception:
+            continue
+    return results
 
 LEAGUES = {
     "Ligue 1": "FR",

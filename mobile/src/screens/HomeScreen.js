@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated, Dimensions, Share, Easing, Linking, Image } from 'react-native';
 import GradientView from '../utils/GradientView';
 import { predictionAPI, favoritesAPI, highlightsAPI } from '../services/api';
-import { getLiveFixtures, formatFixture } from '../services/liveApi';
+import { getLiveFixtures } from '../services/liveApi';
 import { COLORS, FONTS, SHADOWS, APP_NAME, BOOKMAKERS, SHARE_TEXT, WORLD_CUP_2026 } from '../utils/constants';
 
 const { width } = Dimensions.get('window');
@@ -67,19 +67,16 @@ export default function HomeScreen({ navigation }) {
     try {
       const fixtures = await getLiveFixtures();
       if (fixtures.length > 0) {
-        const formatted = fixtures.map(formatFixture).filter(f => f.isLive);
-        if (formatted.length > 0) {
-          setLiveMatches(formatted.map((f, i) => ({
-            ...f,
-            stats: STAT_TEMPLATES[i % STAT_TEMPLATES.length],
-          })));
-          setApiConnected(true);
-          return;
-        }
+        setLiveMatches(fixtures.map((f, i) => ({
+          ...f,
+          stats: STAT_TEMPLATES[i % STAT_TEMPLATES.length],
+        })));
+        setApiConnected(true);
+        return;
       }
     } catch (e) {}
     setApiConnected(false);
-    generateSimulatedScores();
+    setLiveMatches([]);
   }
 
   async function fetchHighlights() {
@@ -96,59 +93,23 @@ export default function HomeScreen({ navigation }) {
     try {
       const fixtures = await getLiveFixtures();
       if (fixtures.length > 0) {
-        const formatted = fixtures.map(formatFixture).filter(f => f.isLive);
-        if (formatted.length > 0) {
-          formatted.forEach(f => {
-            const old = liveMatches.find(l => l.id === f.id);
-            if (old && (f.scoreHome !== old.scoreHome || f.scoreAway !== old.scoreAway)) {
-              setGoalFlash(f.id);
-              Animated.sequence([
-                Animated.timing(goalOpacity, { toValue: 1, duration: 150, useNativeDriver: true }),
-                Animated.timing(goalOpacity, { toValue: 0, duration: 2500, useNativeDriver: true }),
-              ]).start(() => setGoalFlash(null));
-            }
-          });
-          setLiveMatches(formatted.map((f, i) => ({
-            ...f, stats: STAT_TEMPLATES[i % STAT_TEMPLATES.length],
-          })));
-          setApiConnected(true);
-          return;
-        }
+        fixtures.forEach(f => {
+          const old = liveMatches.find(l => l.id === f.id);
+          if (old && (f.scoreHome !== old.scoreHome || f.scoreAway !== old.scoreAway)) {
+            setGoalFlash(f.id);
+            Animated.sequence([
+              Animated.timing(goalOpacity, { toValue: 1, duration: 150, useNativeDriver: true }),
+              Animated.timing(goalOpacity, { toValue: 0, duration: 2500, useNativeDriver: true }),
+            ]).start(() => setGoalFlash(null));
+          }
+        });
+        setLiveMatches(fixtures.map((f, i) => ({
+          ...f, stats: STAT_TEMPLATES[i % STAT_TEMPLATES.length],
+        })));
+        setApiConnected(true);
+        return;
       }
     } catch (e) {}
-    setLiveMatches(prev => prev.map(m => {
-      if (m.status === 'upcoming') return m;
-      let newMinute = m.minute + Math.floor(Math.random() * 8) + 2;
-      if (newMinute > 95) newMinute = 95;
-      let newHome = m.scoreHome, newAway = m.scoreAway;
-      if (Math.random() < 0.2 && newMinute > 10) {
-        if (Math.random() < 0.55) newHome++; else newAway++;
-      }
-      return { ...m, minute: newMinute, scoreHome: newHome, scoreAway: newAway };
-    }));
-  }
-
-  function generateSimulatedScores() {
-    const teams = [
-      { h: 'Manchester City', a: 'Arsenal' }, { h: 'PSG', a: 'Marseille' },
-      { h: 'Real Madrid', a: 'Barcelona' }, { h: 'Bayern Munich', a: 'Dortmund' },
-      { h: 'AC Milan', a: 'Inter Milan' }, { h: 'Liverpool', a: 'Chelsea' },
-    ];
-    const now = new Date();
-    const sim = teams.map((t, i) => ({
-      id: 10000 + i,
-      match: `${t.h} vs ${t.a}`,
-      home: t.h, away: t.a,
-      scoreHome: Math.floor(Math.random() * 3),
-      scoreAway: Math.floor(Math.random() * 2),
-      minute: Math.floor(Math.random() * 60) + 15,
-      status: '1H',
-      league: 'Championship (simule)',
-      homeLogo: '', awayLogo: '',
-      isLive: true,
-      stats: STAT_TEMPLATES[i % STAT_TEMPLATES.length],
-    }));
-    setLiveMatches(sim);
   }
 
   function updateWCCountdown() {
